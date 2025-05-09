@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {User} = require('../../models');
 const {Op} = require("sequelize");
-const { NotFoundError } = require('../../utils/errors');
+const { NotFound } = require('http-errors');
 const { success, failure } = require('../../utils/responses');
 
 
@@ -170,7 +170,7 @@ async function getUser(req) {
 
     //没有找到的话 抛出异常
     if (!user) {
-        throw new NotFoundError(`id:${id}的用户未找到`);
+        throw new NotFound(`id:${id}的用户未找到`);
     } else {
         return user;
     }
