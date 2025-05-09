@@ -150,6 +150,7 @@ router.put('/:id', async function (req, res, next) {
  */
 function getCondition() {
     return {
+        distinct: true,
         attributes: { exclude: ['CategoryId', 'UserId'] },
         include: [
             {
