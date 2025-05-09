@@ -1,5 +1,6 @@
 const { Conflict } = require('http-errors')
 const createError = require('http-errors');
+const multer = require('multer');
 
 /**
  * 请求成功
@@ -26,7 +27,7 @@ function failure(res, error) {
     let statusCode = 500;
     let errors = '服务器错误';
 
-    if (error.name === 'SequelizeValidationError') {  // Sequelize 验证错误
+    if (error.name === 'SequelizeValidationError') {  // Sequelize 验证数据错误
         statusCode = 400;
         errors = error.errors.map(e => e.message);
     } else if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {  // Token 验证错误
@@ -35,6 +36,14 @@ function failure(res, error) {
     } else if (error instanceof createError.HttpError) {  // http-errors 库创建的错误
         statusCode = error.status;
         errors = error.message;
+    } else if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            statusCode = 413;
+            errors = '文件大小超出限制。';
+        } else {
+            statusCode = 400;
+            errors = error.message;
+        }
     }
 
     res.status(statusCode).json({

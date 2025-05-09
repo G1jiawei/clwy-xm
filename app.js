@@ -17,6 +17,7 @@ const settingsRouter = require('./routes/settings');
 const searchRouter = require('./routes/search');
 const authRouter = require('./routes/auth');
 const likesRouter = require('./routes/likes');
+const uploadsRouter = require('./routes/uploads');
 
 //后台路由路径
 const adminArticlesRouter = require('./routes/admin/articles');
@@ -48,6 +49,7 @@ app.use('/search', searchRouter);
 app.use('/auth', authRouter);
 app.use('/users', userAuth, usersRouter);
 app.use('/likes', userAuth, likesRouter);
+app.use('/uploads', userAuth, uploadsRouter);
 
 //使用后台路由配置
 app.use('/admin/articles', adminAuth, adminArticlesRouter);
