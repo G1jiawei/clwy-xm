@@ -52,4 +52,17 @@ const delKey = async (key) => {
     await client.del(key);
 };
 
+/**
+ * 获取匹配模式的所有键名
+ * @param pattern
+ * @returns {Promise<*>}
+ */
+const getKeysByPattern = async (pattern) => {
+    if (!client) await redisClient();
+    return await client.keys(pattern);
+}
+
+module.exports = { redisClient, setKey, getKey, delKey, getKeysByPattern };
+
+
 module.exports = { redisClient, setKey, getKey, delKey };

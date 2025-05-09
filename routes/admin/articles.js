@@ -3,6 +3,7 @@ const router = express.Router();
 const {Article} = require('../../models');
 const {Op} = require("sequelize");
 const { NotFound } = require('http-errors');
+const { getKeysByPattern, delKey } = require('../../utils/redis');
 const { success, failure } = require('../../utils/responses');
 
 
@@ -59,21 +60,28 @@ router.get('/', async function (req, res, next) {
 });
 
 /**
- * 查询文章详细
- * GET/admin/articles/:id
+ * 查询文章详情
+ * GET /articles/:id
  */
-router.get('/:id', async function (req, res, next) {
+router.get('/:id', async function (req, res) {
     try {
-        const article = await getArticle(req);
+        const { id } = req.params;
 
+        let article = await getKey(`article:${id}`);
+        if (!article) {
+            article = await Article.findByPk(id);
+            if (!article) {
+                throw new NotFound(`ID: ${id}的文章未找到。`)
+            }
+            await setKey(`article:${id}`, article)
+        }
 
-        success(res, '查询文章成功', {article});
-
+        success(res, '查询文章成功。', { article });
     } catch (error) {
-        failure(res, error)
+        failure(res, error);
     }
-
 });
+
 /**
  * 创建文章
  * POST / admin/articles
@@ -85,6 +93,8 @@ router.post('/', async function (req, res, next) {
 
 
         const article = await Article.create(body);
+        await clearCache();
+
         success(res, '创建文章成功', {article}, 201);
     } catch (error) {
         failure(res, error)
@@ -100,6 +110,8 @@ router.post('/delete', async function (req, res) {
         const { id } = req.body;
 
         await Article.destroy({ where: { id: id } });
+        await clearCache(id);
+
         success(res, '已删除到回收站。');
     } catch (error) {
         failure(res, error);
@@ -115,6 +127,8 @@ router.post('/restore', async function (req, res) {
         const { id } = req.body;
 
         await Article.restore({ where: { id: id } });
+        await clearCache(id);
+
         success(res, '已恢复成功。')
     } catch (error) {
         failure(res, error);
@@ -152,6 +166,9 @@ router.put('/:id', async function (req, res, next) {
 
 
         await article.update(body);
+        await clearCache(article.id);
+
+
         success(res, '更新文章成功', {article})
 
     } catch (error) {
@@ -188,5 +205,26 @@ function filterBody(req) {
         content: req.body.content,
     };
 }
+
+/**
+ * 清除缓存
+ * @param id
+ * @returns {Promise<void>}
+ */
+async function clearCache(id = null) {
+    // 清除所有文章列表缓存
+    let keys = await getKeysByPattern('articles:*');
+    if (keys.length !== 0) {
+        await delKey(keys);
+    }
+
+    // 如果传递了id，则通过id清除文章详情缓存
+    if (id) {
+        // 如果是数组，则遍历
+        const keys = Array.isArray(id) ? id.map(item => `article:${item}`) : `article:${id}`;
+        await delKey(keys);
+    }
+}
+
 
 module.exports = router;

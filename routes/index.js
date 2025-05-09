@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Course, Category, User } = require('../models');
+const { setKey, getKey } = require('../utils/redis');
 const { success, failure } = require('../utils/responses');
 
 /**
@@ -9,6 +10,13 @@ const { success, failure } = require('../utils/responses');
  */
 router.get('/', async function (req, res, next) {
   try {
+    // 如果有缓存，直接返回缓存数据
+    let data = await getKey('index');
+    if (data) {
+      return success(res, '查询首页数据成功。', data);
+    }
+
+    // 如果没有缓存，查询数据库
     const [
       recommendedCourses,
       likesCourses,
@@ -46,17 +54,22 @@ router.get('/', async function (req, res, next) {
         order: [['id', 'desc']],
         limit: 10
       }),
-    ])
+    ]);
 
-    success(res, '恭喜您，获取首页数据成功啦！', {
+    // 组装数据
+    data = {
       recommendedCourses,
       likesCourses,
       introductoryCourses
-    });
+    }
+
+    // 设置缓存过期时间，为30分钟
+    await setKey('index', data, 30 * 60);
+
+    return success(res, '查询首页数据成功。', data);
   } catch (error) {
     failure(res, error);
   }
 });
-
 
 module.exports = router;

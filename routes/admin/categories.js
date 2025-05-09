@@ -3,6 +3,7 @@ const router = express.Router();
 const {Category,Course} = require('../../models');
 const {Op} = require("sequelize");
 const { NotFound,Conflict  } = require('http-errors');
+const { delKey } = require('../../utils/redis');
 const { success, failure } = require('../../utils/responses');
 
 
@@ -63,6 +64,8 @@ router.post('/', async function (req, res, next) {
 
 
         const category = await Category.create(body);
+        await clearCache();
+
         success(res, '创建分类成功', {category}, 201);
     } catch (error) {
         failure(res, error)
@@ -84,6 +87,8 @@ router.delete('/:id', async function (req, res) {
         }
 
         await category.destroy();
+        await clearCache();
+
         success(res, '删除分类成功。');
     } catch (error) {
         failure(res, error);
@@ -102,6 +107,8 @@ router.put('/:id', async function (req, res, next) {
 
 
         await category.update(body);
+        await clearCache();
+
         success(res, '更新分类成功', {category})
 
     } catch (error) {
@@ -137,6 +144,14 @@ function filterBody(req) {
         name: req.body.name,
         rank: req.body.rank,
     };
+}
+
+/**
+ * 清除缓存
+ * @returns {Promise<void>}
+ */
+async function clearCache() {
+    await delKey('categories');
 }
 
 module.exports = router;
