@@ -12,10 +12,11 @@ const { success, failure } = require('../../utils/responses');
  */
 router.get('/sex', async function (req, res) {
     try {
-
-        const male = await User.count({ where: { sex: 0 } });
-        const female = await User.count({ where: { sex: 1 } });
-        const unknown = await User.count({ where: { sex: 2 } });
+        const [male, female, unknown] = await Promise.all([
+            User.count({ where: { sex: 0 } }),
+            User.count({ where: { sex: 1 } }),
+            User.count({ where: { sex: 2 } })
+        ]);
 
         const data = [
             { value: male, name: '男性' },
@@ -28,6 +29,7 @@ router.get('/sex', async function (req, res) {
         failure(res, error);
     }
 });
+
 
 /**
  * 统计每个月用户数量
