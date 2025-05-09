@@ -60,7 +60,7 @@ module.exports = (sequelize, DataTypes) => {
           throw new BadRequest('密码必须填写。');
         }
 
-        // 检查长度
+        // 检查长度 11
         if (value.length < 6 || value.length > 45) {
           throw new BadRequest('密码长度必须是6 ~ 45之间。');
         }
