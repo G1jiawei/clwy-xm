@@ -18,6 +18,7 @@ const searchRouter = require('./routes/search');
 const authRouter = require('./routes/auth');
 const likesRouter = require('./routes/likes');
 const uploadsRouter = require('./routes/uploads');
+const adminAttachmentsRouter = require('./routes/admin/attachments');
 
 //后台路由路径
 const adminArticlesRouter = require('./routes/admin/articles');
@@ -50,6 +51,7 @@ app.use('/auth', authRouter);
 app.use('/users', userAuth, usersRouter);
 app.use('/likes', userAuth, likesRouter);
 app.use('/uploads', userAuth, uploadsRouter);
+app.use('/admin/attachments', adminAuth, adminAttachmentsRouter);
 
 //使用后台路由配置
 app.use('/admin/articles', adminAuth, adminArticlesRouter);
