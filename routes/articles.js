@@ -5,6 +5,7 @@ const { success, failure } = require('../utils/responses');
 const { NotFound } = require('http-errors');
 const { setKey, getKey } = require('../utils/redis');
 
+
 /**
  * 查询文章列表
  * GET /articles
@@ -55,9 +56,13 @@ router.get('/:id', async function (req, res) {
     try {
         const { id } = req.params;
 
-        const article = await Article.findByPk(id);
+        let article = await getKey(`article:${id}`);
         if (!article) {
-            throw new NotFound(`ID: ${ id }的文章未找到。`)
+            article = await Article.findByPk(id);
+            if (!article) {
+                throw new NotFound(`ID: ${id}的文章未找到。`)
+            }
+            await setKey(`article:${id}`, article)
         }
 
         success(res, '查询文章成功。', { article });
@@ -65,6 +70,7 @@ router.get('/:id', async function (req, res) {
         failure(res, error);
     }
 });
+
 
 
 module.exports = router;

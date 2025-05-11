@@ -64,5 +64,3 @@ const getKeysByPattern = async (pattern) => {
 
 module.exports = { redisClient, setKey, getKey, delKey, getKeysByPattern };
 
-
-module.exports = { redisClient, setKey, getKey, delKey };
