@@ -20,10 +20,15 @@ router.get('/', async (req, res) => {
             height: 50                  // 高
         });
 
-        console.log(captcha.text);
 
-        res.type('svg');
-        res.status(200).send(captcha.data);
+
+        const captchaKey = `captcha:${uuidv4()}`;
+        await setKey(captchaKey, captcha.text, 60 * 10);
+
+        success(res, '验证码获取成功。', {
+            captchaKey,
+            captchaData: captcha.data,
+        });
     } catch (error) {
         failure(res, error);
     }
