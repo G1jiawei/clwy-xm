@@ -4,7 +4,7 @@ const {Chapter,Course} = require('../../models');
 const {Op} = require("sequelize");
 const { NotFound,BadRequest } = require('http-errors');
 const { success, failure } = require('../../utils/responses');
-
+const { delKey } = require('../../utils/redis');
 
 /* 查询章节 */
 router.get('/', async function (req, res, next) {
@@ -86,7 +86,7 @@ router.post('/', async function (req, res) {
         // 创建章节，并增加课程章节数
         const chapter = await Chapter.create(body);
         await Course.increment('chaptersCount', { where: { id: chapter.courseId }});
-
+        await clearCache(chapter);
         success(res, '创建章节成功。', { chapter }, 201);
     } catch (error) {
         failure(res, error);
@@ -105,7 +105,7 @@ router.delete('/:id', async function (req, res) {
         // 删除章节，并减少课程章节数
         await chapter.destroy();
         await Course.decrement('chaptersCount', { where: { id: chapter.courseId }});
-
+        await clearCache(chapter);
         success(res, '删除章节成功。');
     } catch (error) {
         failure(res, error);
@@ -125,6 +125,7 @@ router.put('/:id', async function (req, res, next) {
 
 
         await chapter.update(body);
+        await clearCache(chapter);
         success(res, '更新章节成功', {chapter})
 
     } catch (error) {
@@ -180,6 +181,16 @@ function filterBody(req) {
         video: req.body.video,
         rank: req.body.rank
     };
+}
+
+/**
+ * 清除缓存
+ * @param chapter
+ * @returns {Promise<void>}
+ */
+async function clearCache(chapter) {
+    await delKey(`chapters:${chapter.courseId}`);
+    await delKey(`chapter:${chapter.id}`);
 }
 
 

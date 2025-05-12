@@ -4,7 +4,7 @@ const {User} = require('../../models');
 const {Op} = require("sequelize");
 const { NotFound } = require('http-errors');
 const { success, failure } = require('../../utils/responses');
-
+const { delKey } = require('../../utils/redis');
 
 /* 查询用户 */
 router.get('/', async function (req, res, next) {
@@ -150,6 +150,7 @@ router.put('/:id', async function (req, res, next) {
 
 
         await user.update(body);
+        await clearCache(user);
         success(res, '更新用户成功', {user})
 
     } catch (error) {
@@ -193,6 +194,15 @@ function filterBody(req) {
         role: req.body.role,
         avatar: req.body.avatar
     };
+}
+
+/**
+ * 清除缓存
+ * @param user
+ * @returns {Promise<void>}
+ */
+async function clearCache(user) {
+    await delKey(`user:${user.id}`);
 }
 
 

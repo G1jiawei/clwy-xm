@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Setting } = require('../../models');
 const { NotFound } = require('http-errors');
-const { delKey } = require('../../utils/redis');
+const { delKey, flushAll } = require('../../utils/redis');
 
 const { success, failure } = require('../../utils/responses');
 
@@ -40,6 +40,17 @@ router.put('/', async function (req, res) {
     }
 });
 
+/**
+ * 清除所有缓存
+ */
+router.get('/flush-all', async function (req, res) {
+    try {
+        await flushAll();
+        success(res, '清除所有缓存成功。');
+    } catch (error) {
+        failure(res, error);
+    }
+});
 
 /**
  * 公共方法：查询当前系统设置
