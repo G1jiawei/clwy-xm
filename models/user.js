@@ -117,6 +117,7 @@ module.exports = (sequelize, DataTypes) => {
         return moment(this.getDataValue("updatedAt")).format("LL");
       }
     },
+    membershipExpiredAt: DataTypes.DATE,
 
 
   }, {

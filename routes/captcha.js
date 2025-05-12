@@ -5,6 +5,8 @@ const svgCaptcha = require('svg-captcha');
 const { setKey } = require('../utils/redis');
 const { v4: uuidv4 } = require('uuid');
 
+
+
 /**
  * 获取验证码
  * GET /captcha
