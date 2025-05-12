@@ -10,7 +10,6 @@ require('dotenv').config();
 const { mailConsumer } = require('./utils/rabbit-mq');
 (async () => {
     await mailConsumer();
-    console.log('邮件消费者已启动');
 })();
 //前台路由路径
 const indexRouter = require('./routes/index');
@@ -36,6 +35,7 @@ const adminCoursesRouter = require('./routes/admin/courses');
 const adminChaptersRouter = require('./routes/admin/chapters');
 const adminChartsRouter = require('./routes/admin/charts');
 const adminAuthRouter = require('./routes/admin/auth');
+const adminLogsRouter = require('./routes/admin/logs');
 
 const app = express();
 
@@ -70,5 +70,6 @@ app.use('/admin/courses', adminAuth, adminCoursesRouter);
 app.use('/admin/chapters', adminAuth, adminChaptersRouter);
 app.use('/admin/charts', adminAuth, adminChartsRouter);
 app.use('/admin/auth', adminAuthRouter);
+app.use('/admin/logs', adminAuth, adminLogsRouter);
 
 module.exports = app;

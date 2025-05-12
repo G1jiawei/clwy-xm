@@ -10,6 +10,7 @@ const { success, failure } = require('../utils/responses');
  */
 router.get('/', async function (req, res, next) {
   try {
+
     // 如果有缓存，直接返回缓存数据
     let data = await getKey('index');
     if (data) {

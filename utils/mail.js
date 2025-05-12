@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const logger = require('./logger');
 
 /**
  * 发件箱配置
@@ -28,7 +29,8 @@ const sendMail = async (email, subject, html) => {
             html,
         });
     } catch (error) {
-        console.log('邮件发送失败：', error);
+        logger.error('邮件发送失败：', error);
+
     }
 };
 
