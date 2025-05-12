@@ -4,12 +4,12 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const adminAuth = require('./middlewares/admin-auth');
 const userAuth = require('./middlewares/user-auth');
-const cors = require('cors')
+const cors = require('cors');
 require('dotenv').config();
 // 启动邮件消费者
 const { mailConsumer } = require('./utils/rabbit-mq');
 (async () => {
-    await mailConsumer();
+  await mailConsumer();
 })();
 //前台路由路径
 const indexRouter = require('./routes/index');
@@ -39,7 +39,7 @@ const adminChartsRouter = require('./routes/admin/charts');
 const adminAuthRouter = require('./routes/admin/auth');
 const adminLogsRouter = require('./routes/admin/logs');
 const adminMembershipsRouter = require('./routes/admin/memberships');
-const adminOrdersRouter = require('./routes/admin/orders')
+const adminOrdersRouter = require('./routes/admin/orders');
 
 const app = express();
 
@@ -67,7 +67,6 @@ app.use('/captcha', captchaRouter);
 app.use('/memberships', membershipsRouter);
 app.use('/orders', userAuth, ordersRouter);
 
-
 //使用后台路由配置
 app.use('/admin/articles', adminAuth, adminArticlesRouter);
 app.use('/admin/categories', adminAuth, adminCategoriesRouter);
@@ -80,6 +79,5 @@ app.use('/admin/auth', adminAuthRouter);
 app.use('/admin/logs', adminAuth, adminLogsRouter);
 app.use('/admin/memberships', adminAuth, adminMembershipsRouter);
 app.use('/admin/orders', adminAuth, adminOrdersRouter);
-
 
 module.exports = app;

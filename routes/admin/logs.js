@@ -9,15 +9,15 @@ const { success, failure } = require('../../utils/responses');
  * GET /admin/logs
  */
 router.get('/', async function (req, res) {
-    try {
-        const logs = await Log.findAll({
-            order: [['id', 'DESC']],
-        });
+  try {
+    const logs = await Log.findAll({
+      order: [['id', 'DESC']],
+    });
 
-        success(res, '查询日志列表成功。', { logs: logs });
-    } catch (error) {
-        failure(res, error);
-    }
+    success(res, '查询日志列表成功。', { logs: logs });
+  } catch (error) {
+    failure(res, error);
+  }
 });
 
 /**
@@ -25,13 +25,13 @@ router.get('/', async function (req, res) {
  * GET /admin/logs/:id
  */
 router.get('/:id', async function (req, res) {
-    try {
-        const log = await getLog(req);
+  try {
+    const log = await getLog(req);
 
-        success(res, '查询日志成功。', { log });
-    } catch (error) {
-        failure(res, error);
-    }
+    success(res, '查询日志成功。', { log });
+  } catch (error) {
+    failure(res, error);
+  }
 });
 
 /**
@@ -39,13 +39,13 @@ router.get('/:id', async function (req, res) {
  * DELETE /admin/logs/clear
  */
 router.delete('/clear', async function (req, res) {
-    try {
-        await Log.destroy({ truncate: true });
+  try {
+    await Log.destroy({ truncate: true });
 
-        success(res, '清空日志成功。');
-    } catch (error) {
-        failure(res, error);
-    }
+    success(res, '清空日志成功。');
+  } catch (error) {
+    failure(res, error);
+  }
 });
 
 /**
@@ -53,28 +53,28 @@ router.delete('/clear', async function (req, res) {
  * DELETE /admin/logs/:id
  */
 router.delete('/:id', async function (req, res) {
-    try {
-        const log = await getLog(req);
-        await log.destroy();
+  try {
+    const log = await getLog(req);
+    await log.destroy();
 
-        success(res, '删除日志成功。');
-    } catch (error) {
-        failure(res, error);
-    }
+    success(res, '删除日志成功。');
+  } catch (error) {
+    failure(res, error);
+  }
 });
 
 /**
  * 公共方法：查询当前日志
  */
 async function getLog(req) {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    const log = await Log.findByPk(id);
-    if (!log) {
-        throw new NotFound(`ID: ${id}的日志未找到。`)
-    }
+  const log = await Log.findByPk(id);
+  if (!log) {
+    throw new NotFound(`ID: ${id}的日志未找到。`);
+  }
 
-    return log;
+  return log;
 }
 
 module.exports = router;

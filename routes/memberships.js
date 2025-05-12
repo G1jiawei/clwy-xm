@@ -9,19 +9,22 @@ const { setKey, getKey } = require('../utils/redis');
  * GET /memberships
  */
 router.get('/', async function (req, res, next) {
-    try {
-        let memberships = await getKey('memberships');
-        if (!memberships) {
-            memberships = await Membership.findAll({
-                order: [['rank', 'ASC'], ['id', 'DESC']]
-            });
-            await setKey('memberships', memberships);
-        }
-
-        success(res, '查询大会员列表成功。', { memberships });
-    } catch (error) {
-        failure(res, error);
+  try {
+    let memberships = await getKey('memberships');
+    if (!memberships) {
+      memberships = await Membership.findAll({
+        order: [
+          ['rank', 'ASC'],
+          ['id', 'DESC'],
+        ],
+      });
+      await setKey('memberships', memberships);
     }
+
+    success(res, '查询大会员列表成功。', { memberships });
+  } catch (error) {
+    failure(res, error);
+  }
 });
 
 module.exports = router;

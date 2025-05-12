@@ -4,17 +4,15 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.addColumn('Articles', 'deletedAt', {
-      type: Sequelize.DATE
+      type: Sequelize.DATE,
     });
 
-    await queryInterface.addIndex(
-        'Articles', {
-          fields: ['deletedAt']
-        });
+    await queryInterface.addIndex('Articles', {
+      fields: ['deletedAt'],
+    });
   },
 
   async down(queryInterface, Sequelize) {
     await queryInterface.removeColumn('Articles', 'deletedAt');
-  }
-
+  },
 };

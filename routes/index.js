@@ -10,7 +10,6 @@ const { success, failure } = require('../utils/responses');
  */
 router.get('/', async function (req, res, next) {
   try {
-
     // 如果有缓存，直接返回缓存数据
     let data = await getKey('index');
     if (data) {
@@ -18,11 +17,7 @@ router.get('/', async function (req, res, next) {
     }
 
     // 如果没有缓存，查询数据库
-    const [
-      recommendedCourses,
-      likesCourses,
-      introductoryCourses
-    ] = await Promise.all([
+    const [recommendedCourses, likesCourses, introductoryCourses] = await Promise.all([
       // 焦点图（推荐的课程）
       Course.findAll({
         attributes: { exclude: ['CategoryId', 'UserId', 'content'] },
@@ -30,30 +25,33 @@ router.get('/', async function (req, res, next) {
           {
             model: Category,
             as: 'category',
-            attributes: ['id', 'name']
+            attributes: ['id', 'name'],
           },
           {
             model: User,
             as: 'user',
             attributes: ['id', 'username', 'nickname', 'avatar', 'company'],
-          }
+          },
         ],
         where: { recommended: true },
         order: [['id', 'desc']],
-        limit: 10
+        limit: 10,
       }),
       // 人气课程
       Course.findAll({
         attributes: { exclude: ['CategoryId', 'UserId', 'content'] },
-        order: [['likesCount', 'desc'], ['id', 'desc']],
-        limit: 10
+        order: [
+          ['likesCount', 'desc'],
+          ['id', 'desc'],
+        ],
+        limit: 10,
       }),
       // 入门课程
       Course.findAll({
         attributes: { exclude: ['CategoryId', 'UserId', 'content'] },
         where: { introductory: true },
         order: [['id', 'desc']],
-        limit: 10
+        limit: 10,
       }),
     ]);
 
@@ -61,8 +59,8 @@ router.get('/', async function (req, res, next) {
     data = {
       recommendedCourses,
       likesCourses,
-      introductoryCourses
-    }
+      introductoryCourses,
+    };
 
     // 设置缓存过期时间，为30分钟
     await setKey('index', data, 30 * 60);

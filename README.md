@@ -30,13 +30,13 @@ RABBITMQ_URL=
 
 
 ```
+
 - `RABBITMQ_URL`配置为消息队列服务器地址。
 - `MAILER`开头的配置，为邮件服务器的配置。
 - `NODE_ENV`配置为开发环境，如部署在生产环境可改为`production`。
 - `PORT`配置为服务端口。
 - `SECRET`配置为密钥。
 - `ALIYUN`开头的配置，均为阿里云的配置。请注册阿里云云账号，创建存储空间，并创建`Access Key`。
-
 
 ## 生成秘钥
 

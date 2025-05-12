@@ -15,7 +15,7 @@ router.get('/me', async function (req, res) {
     let user = await getKey(`user:${req.userId}`);
     if (!user) {
       user = await getUser(req);
-      await setKey(`user:${req.userId}`, user)
+      await setKey(`user:${req.userId}`, user);
     }
 
     success(res, '查询当前用户信息成功。', { user });
@@ -35,7 +35,7 @@ router.put('/info', async function (req, res) {
       sex: req.body.sex,
       company: req.body.company,
       introduce: req.body.introduce,
-      avatar: req.body.avatar
+      avatar: req.body.avatar,
     };
 
     const user = await getUser(req);
@@ -58,7 +58,7 @@ router.put('/account', async function (req, res) {
       username: req.body.username,
       currentPassword: req.body.currentPassword,
       password: req.body.password,
-      passwordConfirmation: req.body.passwordConfirmation
+      passwordConfirmation: req.body.passwordConfirmation,
     };
 
     if (!body.currentPassword) {
@@ -89,7 +89,6 @@ router.put('/account', async function (req, res) {
   }
 });
 
-
 /**
  * 公共方法：查询当前用户
  * @param req
@@ -108,7 +107,7 @@ async function getUser(req, showPassword = false) {
 
   const user = await User.findByPk(id, condition);
   if (!user) {
-    throw new NotFound(`ID: ${ id }的用户未找到。`)
+    throw new NotFound(`ID: ${id}的用户未找到。`);
   }
 
   return user;
@@ -122,7 +121,5 @@ async function getUser(req, showPassword = false) {
 async function clearCache(user) {
   await delKey(`user:${user.id}`);
 }
-
-
 
 module.exports = router;
