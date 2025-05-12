@@ -26,10 +26,12 @@ MAILER_SECURE=465端口填写：true，否则填写：false
 MAILER_USER=你的邮箱地址
 MAILER_PASS=你的邮箱授权码或密码
 
-- `MAILER`开头的配置，为邮件服务器的配置。
+RABBITMQ_URL=
+
 
 ```
-
+- `RABBITMQ_URL`配置为消息队列服务器地址。
+- `MAILER`开头的配置，为邮件服务器的配置。
 - `NODE_ENV`配置为开发环境，如部署在生产环境可改为`production`。
 - `PORT`配置为服务端口。
 - `SECRET`配置为密钥。

@@ -6,6 +6,12 @@ const adminAuth = require('./middlewares/admin-auth');
 const userAuth = require('./middlewares/user-auth');
 const cors = require('cors')
 require('dotenv').config();
+// 启动邮件消费者
+const { mailConsumer } = require('./utils/rabbit-mq');
+(async () => {
+    await mailConsumer();
+    console.log('邮件消费者已启动');
+})();
 //前台路由路径
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
