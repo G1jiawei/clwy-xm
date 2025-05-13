@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { Course } = require('../models');
 const { success, failure } = require('../utils/responses');
-const { Op } = require('sequelize');
+const { coursesIndex, chaptersIndex} = require('../utils/meilisearch');
+const { BadRequest } = require('http-errors');
 
 /**
  * 搜索课程
- * GET /search
+ * GET /search?q=node&type=courses
+ * GET /search?q=node&type=chapters
  */
 router.get('/', async function (req, res) {
   try {
@@ -14,26 +15,36 @@ router.get('/', async function (req, res) {
     const currentPage = Math.abs(Number(query.currentPage)) || 1;
     const pageSize = Math.abs(Number(query.pageSize)) || 10;
     const offset = (currentPage - 1) * pageSize;
+    const { q, type } = query;
 
-    const condition = {
-      where: {},
-      attributes: { exclude: ['CategoryId', 'UserId', 'content'] },
-      order: [['id', 'DESC']],
-      limit: pageSize,
+    const option = {
+      // 关键词高亮
+      attributesToHighlight: ['*'],
       offset: offset,
+      limit: pageSize,
     };
 
-    if (query.name) {
-      condition.where.name = {
-        [Op.like]: `%${query.name}%`,
-      };
+    // 搜索类型
+    let results;
+    switch (type) {
+      case 'courses':
+        results = await coursesIndex.search(q, option);
+        break;
+      case 'chapters':
+        results = await chaptersIndex.search(q, option);
+        break;
+      default:
+        throw new BadRequest('搜索类型错误。');
     }
 
-    const { count, rows } = await Course.findAndCountAll(condition);
-    success(res, '搜索课程成功。', {
-      courses: rows,
+    // 搜索到的结果
+    const data = {};
+    data[type] = results.hits;
+
+    success(res, '搜索成功。', {
+      ...data,
       pagination: {
-        total: count,
+        total: results.estimatedTotalHits,
         currentPage,
         pageSize,
       },

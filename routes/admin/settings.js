@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { Setting } = require('../../models');
 const { NotFound } = require('http-errors');
 const { delKey, flushAll } = require('../../utils/redis');
+const { Setting, Course, Chapter } = require('../../models');
+const { coursesIndex, chaptersIndex } = require('../../utils/meilisearch');
 
 const { success, failure } = require('../../utils/responses');
 
@@ -46,6 +47,37 @@ router.get('/flush-all', async function (req, res) {
   try {
     await flushAll();
     success(res, '清除所有缓存成功。');
+  } catch (error) {
+    failure(res, error);
+  }
+});
+
+/**
+ * 重建 meilisearch 索引
+ * GET /admin/settings/meilisearch_reindex
+ */
+router.get('/meilisearch_reindex', async function (req, res) {
+  try {
+    // 课程
+    const courses = await Course.findAll({
+      attributes: ['id', 'name', 'image', 'content', 'likesCount', 'updatedAt']
+    });
+    await coursesIndex.addDocuments(courses);
+
+    // 章节
+    const chapters = await Chapter.findAll({
+      attributes: ['id', 'title', 'content', 'updatedAt'],
+      include: [
+        {
+          model: Course,
+          as: 'course',
+          attributes: ['id', 'name', 'image']
+        }
+      ]
+    });
+    await chaptersIndex.addDocuments(chapters);
+
+    success(res, '重建索引成功。');
   } catch (error) {
     failure(res, error);
   }

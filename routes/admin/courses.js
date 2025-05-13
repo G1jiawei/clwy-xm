@@ -4,20 +4,16 @@ const { Course, Category, User, Chapter } = require('../../models');
 const { Op } = require('sequelize');
 const { NotFound, Conflict } = require('http-errors');
 const { success, failure } = require('../../utils/responses');
-const { getKeysByPattern, delKey } = require('../../utils/redis');
 
-/* 查询课程 */
-router.get('/', async function (req, res, next) {
+/**
+ * 查询课程列表
+ * GET /admin/courses
+ */
+router.get('/', async function (req, res) {
   try {
     const query = req.query;
-
-    //当前第几页，不传默认第一页
     const currentPage = Math.abs(Number(query.currentPage)) || 1;
-
-    //每页显示几条，不传默认10
     const pageSize = Math.abs(Number(query.pageSize)) || 10;
-
-    //计算offset 起始页
     const offset = (currentPage - 1) * pageSize;
 
     const condition = {
@@ -51,8 +47,7 @@ router.get('/', async function (req, res, next) {
     }
 
     const { count, rows } = await Course.findAndCountAll(condition);
-
-    success(res, '查询课程列表成功', {
+    success(res, '查询课程列表成功。', {
       courses: rows,
       pagination: {
         total: count,
@@ -66,18 +61,18 @@ router.get('/', async function (req, res, next) {
 });
 
 /**
- * 查询课程详细
- * GET/admin/courses/:id
+ * 查询课程详情
+ * GET /admin/courses/:id
  */
-router.get('/:id', async function (req, res, next) {
+router.get('/:id', async function (req, res) {
   try {
     const course = await getCourse(req);
-
-    success(res, '查询课程成功', { course });
+    success(res, '查询课程成功。', { course });
   } catch (error) {
     failure(res, error);
   }
 });
+
 /**
  * 创建课程
  * POST /admin/courses
@@ -85,13 +80,27 @@ router.get('/:id', async function (req, res, next) {
 router.post('/', async function (req, res) {
   try {
     const body = filterBody(req);
-
     // 获取当前登录的用户 ID
     body.userId = req.user.id;
 
     const course = await Course.create(body);
-    await clearCache();
     success(res, '创建课程成功。', { course }, 201);
+  } catch (error) {
+    failure(res, error);
+  }
+});
+
+/**
+ * 更新课程
+ * PUT /admin/courses/:id
+ */
+router.put('/:id', async function (req, res) {
+  try {
+    const course = await getCourse(req);
+    const body = filterBody(req);
+
+    await course.update(body);
+    success(res, '更新课程成功。', { course });
   } catch (error) {
     failure(res, error);
   }
@@ -111,26 +120,7 @@ router.delete('/:id', async function (req, res) {
     }
 
     await course.destroy();
-    await clearCache(course);
     success(res, '删除课程成功。');
-  } catch (error) {
-    failure(res, error);
-  }
-});
-
-/**更新课程
- * PUT / admin/courses/:id
- */
-router.put('/:id', async function (req, res, next) {
-  try {
-    const course = await getCourse(req);
-
-    // 白名单过滤 用户提交的其他东西不管
-    const body = filterBody(req);
-
-    await course.update(body);
-    await clearCache(course);
-    success(res, '更新课程成功', { course });
   } catch (error) {
     failure(res, error);
   }
@@ -142,7 +132,6 @@ router.put('/:id', async function (req, res, next) {
  */
 function getCondition() {
   return {
-    distinct: true,
     attributes: { exclude: ['CategoryId', 'UserId'] },
     include: [
       {
@@ -153,7 +142,7 @@ function getCondition() {
       {
         model: User,
         as: 'user',
-        attributes: ['id', 'username', 'avatar'],
+        attributes: ['id', 'username', 'nickname', 'avatar'],
       },
     ],
   };
@@ -189,22 +178,6 @@ function filterBody(req) {
     content: req.body.content,
     free: req.body.free,
   };
-}
-
-/**
- * 清除缓存
- * @param course
- * @returns {Promise<void>}
- */
-async function clearCache(course = null) {
-  let keys = await getKeysByPattern('courses:*');
-  if (keys.length !== 0) {
-    await delKey(keys);
-  }
-
-  if (course) {
-    await delKey(`course:${course.id}`);
-  }
 }
 
 module.exports = router;

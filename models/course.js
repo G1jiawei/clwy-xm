@@ -1,7 +1,25 @@
 'use strict';
 const { Model } = require('sequelize');
 const moment = require('moment');
+const { coursesIndex } = require('../utils/meilisearch');
+const { getKeysByPattern, delKey } = require('../utils/redis');
 moment.locale('zh-cn');
+
+/**
+ * 清除缓存
+ * @param course
+ * @returns {Promise<void>}
+ */
+async function clearCache(course = null) {
+    let keys = await getKeysByPattern('courses:*');
+    if (keys.length !== 0) {
+        await delKey(keys);
+    }
+
+    if (course) {
+        await delKey(`course:${course.id}`);
+    }
+}
 module.exports = (sequelize, DataTypes) => {
   class Course extends Model {
     /**
@@ -106,10 +124,45 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
     },
-    {
-      sequelize,
-      modelName: 'Course',
-    }
+      {
+          hooks: {
+              // 在课程创建后
+              afterCreate: async (course) => {
+                  await coursesIndex.addDocuments([
+                      {
+                          id: course.id,
+                          name: course.name,
+                          image: course.image || null,
+                          content: course.content || null,
+                          likesCount: course.likesCount || 0,
+                          updatedAt: course.updatedAt,
+                      },
+                  ]);
+                  await clearCache();
+              },
+              // 在课程更新后
+              afterUpdate: async (course) => {
+                  await coursesIndex.updateDocuments([
+                      {
+                          id: course.id,
+                          name: course.name,
+                          image: course.image,
+                          content: course.content,
+                          likesCount: course.likesCount,
+                          updatedAt: course.updatedAt,
+                      },
+                  ]);
+                  await clearCache(course);
+              },
+              // 在课程删除后
+              afterDestroy: async (course) => {
+                  await coursesIndex.deleteDocument(course.id);
+                  await clearCache(course);
+              },
+          },
+          sequelize,
+          modelName: 'Course',
+      }
   );
   return Course;
 };

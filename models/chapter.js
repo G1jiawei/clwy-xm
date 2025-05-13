@@ -1,7 +1,18 @@
 'use strict';
 const { Model } = require('sequelize');
 const moment = require('moment');
+const { chaptersIndex } = require('../utils/meilisearch');
+const { delKey } = require('../utils/redis');
 moment.locale('zh-cn');
+/**
+ * 清除缓存
+ * @param chapter
+ * @returns {Promise<void>}
+ */
+async function clearCache(chapter) {
+  await delKey(`chapters:${chapter.courseId}`);
+  await delKey(`chapter:${chapter.id}`);
+}
 module.exports = (sequelize, DataTypes) => {
   class Chapter extends Model {
     /**
@@ -81,10 +92,55 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
     },
-    {
-      sequelize,
-      modelName: 'Chapter',
-    }
+      {
+        hooks: {
+          // 在章节创建后
+          afterCreate: async (chapter) => {
+            await sequelize.models.Course.increment('chaptersCount', { where: { id: chapter.courseId } });
+            const course = await chapter.getCourse();
+            await chaptersIndex.addDocuments([
+              {
+                id: chapter.id,
+                title: chapter.title,
+                content: chapter.content || null,
+                updatedAt: chapter.updatedAt,
+                course: {
+                  id: course.id,
+                  name: course.name,
+                  image: course.image || null,
+                }
+              },
+            ]);
+            await clearCache(chapter);
+          },
+          // 在章节更新后
+          afterUpdate: async (chapter) => {
+            const course = await chapter.getCourse();
+            await chaptersIndex.updateDocuments([
+              {
+                id: chapter.id,
+                title: chapter.title,
+                content: chapter.content,
+                updatedAt: chapter.updatedAt,
+                course: {
+                  id: course.id,
+                  name: course.name,
+                  image: course.image,
+                }
+              },
+            ]);
+            await clearCache(chapter);
+          },
+          // 在章节删除后
+          afterDestroy: async (chapter) => {
+            await sequelize.models.Course.decrement('chaptersCount', { where: { id: chapter.courseId } });
+            await chaptersIndex.deleteDocument(chapter.id);
+            await clearCache(chapter);
+          },
+        },
+        sequelize,
+        modelName: 'Chapter',
+      }
   );
   return Chapter;
 };
