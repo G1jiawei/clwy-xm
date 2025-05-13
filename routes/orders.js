@@ -5,6 +5,7 @@ const { success, failure } = require('../utils/responses');
 const { BadRequest, NotFound } = require('http-errors');
 const { v4: uuidv4 } = require('uuid');
 const { setKey, getKey } = require('../utils/redis');
+const { broadcastOrderCount } = require('../streams/count-order');
 
 /**
  * 查询订单列表
@@ -81,6 +82,8 @@ router.post('/', async function (req, res, next) {
       status: 0,
     });
 
+    // 使用 SSE 推送订单统计
+    await broadcastOrderCount();
     success(res, '订单创建成功。', { order });
   } catch (error) {
     failure(res, error);

@@ -4,6 +4,8 @@ const { sequelize, User } = require('../../models');
 const { Op } = require('sequelize');
 const { NotFound } = require('http-errors');
 const { success, failure } = require('../../utils/responses');
+const { initOrderStream, broadcastOrderCount } = require('../../streams/count-order');
+
 
 /**
  * 统计用户性别
@@ -54,5 +56,20 @@ router.get('/user', async (req, res) => {
     failure(res, error);
   }
 });
+
+/**
+ * SSE 统计每个月订单数量
+ * GET /admin/charts/stream_order
+ */
+router.get('/stream_order', async (req, res) => {
+  try {
+    initOrderStream(res, req);
+    await broadcastOrderCount();
+  } catch (error) {
+    failure(res, error);
+  }
+});
+
+
 
 module.exports = router;
