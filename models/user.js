@@ -121,6 +121,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       membershipExpiredAt: DataTypes.DATE,
+      openid: DataTypes.STRING,
     },
     {
       sequelize,

@@ -27,6 +27,7 @@ const adminAttachmentsRouter = require('./routes/admin/attachments');
 const captchaRouter = require('./routes/captcha');
 const membershipsRouter = require('./routes/memberships');
 const ordersRouter = require('./routes/orders');
+const wechatRouter = require('./routes/wechat');
 
 //后台路由路径
 const adminArticlesRouter = require('./routes/admin/articles');
@@ -66,6 +67,7 @@ app.use('/admin/attachments', adminAuth, adminAttachmentsRouter);
 app.use('/captcha', captchaRouter);
 app.use('/memberships', membershipsRouter);
 app.use('/orders', userAuth, ordersRouter);
+app.use('/wechat', wechatRouter);
 
 //使用后台路由配置
 app.use('/admin/articles', adminAuth, adminArticlesRouter);
